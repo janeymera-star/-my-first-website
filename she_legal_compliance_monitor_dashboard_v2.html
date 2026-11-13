@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SH&E Legal Compliance Monitor</title>
+<style>
+:root{--navy:#142b45;--blue:#28658d;--bg:#f3f6fa;--line:#e2e8f0;--text:#243447;--muted:#718096;--green:#168354;--amber:#a86400;--red:#b42318;--white:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font:14px/1.5 Inter,Segoe UI,Arial,sans-serif;color:var(--text)}
+header{background:linear-gradient(120deg,#142b45,#245b80);color:#fff;padding:30px max(24px,calc((100% - 1250px)/2));box-shadow:0 5px 18px #17324d18}
+header h1{margin:0 0 5px;font-size:26px;letter-spacing:-.4px}header p{margin:0;color:#d8e6f1;font-size:14px}
+main{max-width:1250px;margin:26px auto;padding:0 18px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+button{border:0;border-radius:9px;padding:11px 16px;background:var(--blue);color:#fff;font:inherit;font-weight:700;cursor:pointer;transition:.15s}
+button:hover{filter:brightness(.95);transform:translateY(-1px)}
+button.primary{background:#28658d;box-shadow:0 4px 10px #28658d25}
+button.secondary{background:#e8eef4;color:var(--navy)}button.danger{background:#fff0ef;color:var(--red)}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.card,.panel{background:var(--white);border:1px solid var(--line);border-radius:15px;padding:19px;box-shadow:0 4px 18px #24344708}
+.card{position:relative;overflow:hidden}.card:after{content:"";position:absolute;right:-18px;top:-22px;width:82px;height:82px;border-radius:50%;background:#28658d0b}
+.card span{display:block;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.02em}
+.card strong{display:block;font-size:31px;line-height:1.2;margin:8px 0 5px;color:var(--navy)}
+.card small{color:var(--muted)}
+.layout{display:block}.panel h2{font-size:18px;margin:0 0 15px;color:var(--navy)}
+label{display:block;font-size:12px;color:#536579;font-weight:700;margin:10px 0 5px}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid #cbd6df;border-radius:8px;font:inherit;background:#fff;color:var(--text);outline:none}
+input:focus,select:focus,textarea:focus{border-color:#5790b5;box-shadow:0 0 0 3px #28658d18}
+textarea{min-height:64px;resize:vertical}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.full{grid-column:1/-1}.help{font-size:12px;color:var(--muted);margin:10px 0 14px}
+.filters{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}.filters input{flex:1;min-width:190px}.filters select{width:auto;min-width:150px}
+.tablewrap{overflow:auto;border:1px solid #edf1f5;border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:760px;background:#fff}
+th,td{text-align:left;padding:13px 11px;border-bottom:1px solid #edf1f5;vertical-align:top}
+th{font-size:10px;text-transform:uppercase;color:#718096;letter-spacing:.07em;background:#f8fafc}
+tbody tr:hover{background:#fbfdff}
+.pill{display:inline-block;border-radius:20px;padding:4px 9px;font-size:11px;font-weight:700;white-space:nowrap}
+.valid{background:#e7f6ed;color:var(--green)}.soon{background:#fff2d7;color:var(--amber)}.expired{background:#feeceb;color:var(--red)}.nodate{background:#edf1f5;color:#526273}
+.rowactions{display:flex;gap:6px}.rowactions button{font-size:11px;padding:7px 9px}.empty{text-align:center;color:var(--muted);padding:32px}
+.register-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.register-heading h2{margin:0}
+footer{color:var(--muted);font-size:12px;margin:20px 2px}
+.modal-backdrop{position:fixed;inset:0;background:#10243b99;display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000;overflow:auto}
+.modal-backdrop[hidden]{display:none!important}
+.modal{width:min(760px,100%);max-height:calc(100vh - 40px);overflow:auto;background:#fff;border-radius:16px;padding:23px;box-shadow:0 22px 70px #10243b55}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.modal-head h2{margin:0;color:var(--navy);font-size:20px}.close-btn{background:#eef2f6;color:#33475b;padding:7px 11px;font-size:18px}
+@media(max-width:900px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){header{padding:22px 18px}header h1{font-size:22px}.cards{gap:9px}.card{padding:14px}.card strong{font-size:26px}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.filters select{width:100%}.register-heading{align-items:flex-start;flex-direction:column}.modal{padding:17px}}
+</style>
+</head>
+<body>
+<header><h1>SH&E Legal Compliance Monitor</h1><p>Track permits, legal obligations, renewal dates, and responsible persons.</p></header>
+<main>
+<div class="toolbar">
+<button class="primary" onclick="openForm()">＋ Add legal requirement</button>
+<button class="secondary" onclick="exportCSV()">↓ Export CSV</button>
+<button class="secondary" onclick="downloadBackup()">Download backup</button>
+<button class="secondary" onclick="document.getElementById('restoreFile').click()">Restore backup</button>
+<input id="restoreFile" type="file" accept=".json,application/json" hidden onchange="restoreBackup(event)">
+</div>
+<section class="cards">
+<div class="card"><span>Total records</span><strong id="total">0</strong><small>All tracked obligations</small></div>
+<div class="card"><span>Expiring in 30 days</span><strong id="soon">0</strong><small>Plan renewal action</small></div>
+<div class="card"><span>Expired</span><strong id="expired">0</strong><small>Review immediately</small></div>
+<div class="card"><span>Valid / no expiry yet</span><strong id="valid">0</strong><small>Check record details</small></div>
+</section>
+<div class="layout">
+<div id="formModal" class="modal-backdrop" hidden onclick="if(event.target===this)closeForm()">
+<section class="modal" role="dialog" aria-modal="true" aria-labelledby="formTitle">
+<div class="modal-head"><h2 id="formTitle">Add legal requirement</h2><button type="button" class="close-btn" onclick="closeForm()" aria-label="Close">×</button></div>
+<form id="recordForm">
+<input id="editId" type="hidden">
+<label for="name">Requirement / document name *</label><input id="name" required placeholder="e.g., Permit to Operate (PTO)">
+<div class="formgrid">
+<div><label for="category">Category *</label><select id="category" required><option value="Permit to Operate">Permit to Operate</option><option value="Load Testing">Load Testing</option><option value="Permit / License">Permit / License</option><option value="DOLE Report">DOLE Report</option><option value="Environmental">Environmental</option><option value="OSH / Safety">OSH / Safety</option><option value="Inspection / Certificate">Inspection / Certificate</option><option value="Training / Competency">Training / Competency</option><option value="Other">Other</option></select></div>
+<div><label for="authority">Issuing authority</label><input id="authority" placeholder="e.g., DENR / DOLE"></div>
+<div><label for="ref">Permit / reference no.</label><input id="ref" placeholder="Reference number"></div>
+<div><label for="site">Site / department</label><input id="site" placeholder="Plant / department"></div>
+<div id="locationField" class="full" hidden><label for="location">Location *</label><input id="location" placeholder="e.g., Production Area 1 / Warehouse / Building A"></div>
+<div><label for="issue">Issue / submission date</label><input id="issue" type="date"></div>
+<div><label for="expiry">Expiry / next due date *</label><input id="expiry" type="date" required></div>
+<div><label for="lead">Alert lead time</label><select id="lead"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="60">60 days</option><option value="90">90 days</option><option value="120">120 days</option><option value="180">180 days</option></select></div>
+<div><label for="owner">Responsible person</label><input id="owner" placeholder="Name / role"></div>
+<div><label for="renewal">Renewal / submission status</label><select id="renewal"><option>Not started</option><option>In progress</option><option>Document submitted</option><option>Waiting</option><option>Submitted / awaiting approval</option><option>Renewed / completed</option><option>Not applicable</option></select></div>
+<div><label for="lastRenewed">Last renewed date</label><input id="lastRenewed" type="date"></div>
+<div class="full"><label for="link">Document link / file reference</label><input id="link" placeholder="Shared drive URL or document location"></div>
+<div class="full"><label for="notes">Remarks / next action</label><textarea id="notes" placeholder="Required actions, submission details, or notes"></textarea></div>
+</div>
+<p class="help">Status is calculated from the expiry / next due date. Records are saved in this browser. Export a backup regularly.</p>
+<button type="submit" id="saveBtn">Save requirement</button> <button type="button" class="secondary" onclick="resetForm()">Clear</button>
+</form>
+</section>
+</div>
+<section class="panel">
+<h2>Compliance register</h2>
+<div class="filters"><input id="search" placeholder="Search name, authority, owner..." oninput="render()"><select id="statusFilter" onchange="render()"><option value="">All statuses</option><option value="Expired">Expired</option><option value="Expiring soon">Expiring soon</option><option value="Valid">Valid</option></select><select id="categoryFilter" onchange="render()"><option value="">All categories</option><option>Permit to Operate</option><option>Load Testing</option><option>Permit / License</option><option>DOLE Report</option><option>Environmental</option><option>OSH / Safety</option><option>Inspection / Certificate</option><option>Training / Competency</option><option>Other</option></select></div>
+<div class="tablewrap"><table><thead><tr><th>Requirement</th><th>Expiry / due</th><th>Days left</th><th>Status</th><th>Renewal progress</th><th>Actions</th></tr></thead><tbody id="tbody"></tbody></table></div>
+<div id="empty" class="empty">No records yet. Add your first legal requirement using the form.</div>
+</section>
+</div>
+<footer>Prototype only: records remain in this browser and are not shared between devices. For company-wide access, connect this interface to a secure hosted database and configure user login, backups, and access permissions. Verify each legal requirement and deadline against the applicable authority.</footer>
+</main>
+<script>
+const KEY='she_legal_compliance_v1';
+let records=[];
+try{records=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){records=[]}
+const $=id=>document.getElementById(id);
+const today=()=>{let d=new Date();d.setHours(0,0,0,0);return d};
+function daysLeft(date){if(!date)return null;let d=new Date(date+'T00:00:00');return Math.round((d-today())/86400000)}
+function statusOf(r){let n=daysLeft(r.expiry);if(n===null)return 'No date';if(n<0)return 'Expired';if(n<=Number(r.lead||30))return 'Expiring soon';return 'Valid'}
+function save(){localStorage.setItem(KEY,JSON.stringify(records))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(){
+ const statuses=records.map(r=>statusOf(r));
+ $('total').textContent=records.length;
+ $('soon').textContent=statuses.filter(s=>s==='Expiring soon').length;
+ $('expired').textContent=statuses.filter(s=>s==='Expired').length;
+ $('valid').textContent=statuses.filter(s=>s==='Valid'||s==='No date').length;
+ const q=$('search').value.toLowerCase(),sf=$('statusFilter').value,cf=$('categoryFilter').value;
+ const list=records.filter(r=>(!q||[r.name,r.authority,r.owner,r.ref,r.site,r.location,r.notes].join(' ').toLowerCase().includes(q))&&(!sf||statusOf(r)===sf)&&(!cf||r.category===cf)).sort((a,b)=>(a.expiry||'9999').localeCompare(b.expiry||'9999'));
+ $('tbody').innerHTML=list.map(r=>{let n=daysLeft(r.expiry),s=statusOf(r),cls=s==='Expired'?'expired':s==='Expiring soon'?'soon':s==='Valid'?'valid':'nodate';return `<tr><td><b>${esc(r.name)}</b><br><small>${esc(r.category)}${r.authority?' · '+esc(r.authority):''}</small>${r.location?'<br><small>Location: '+esc(r.location)+'</small>':''}${r.owner?'<br><small>Owner: '+esc(r.owner)+'</small>':''}</td><td>${esc(r.expiry||'—')}</td><td>${n===null?'—':n<0?Math.abs(n)+' days overdue':n+' days'}</td><td><span class="pill ${cls}">${esc(s)}</span></td><td>${esc(r.renewal||'Not started')}<br><small>${esc(r.ref||'')}</small></td><td><div class="rowactions"><button class="secondary" onclick="editRecord('${r.id}')">Edit</button><button class="danger" onclick="deleteRecord('${r.id}')">Delete</button></div></td></tr>`}).join('');
+ $('empty').style.display=list.length?'none':'block';
+}
+function updateLocationField(){const show=['Permit to Operate','Load Testing'].includes($('category').value);$('locationField').hidden=!show;$('location').required=show;if(!show)$('location').value=''}
+$('category').addEventListener('change',updateLocationField);
+function openForm(){$('formModal').hidden=false;setTimeout(()=>$('name').focus(),50)}
+function closeForm(){$('formModal').hidden=true}
+function resetForm(){$('recordForm').reset();$('editId').value='';$('formTitle').textContent='Add legal requirement';$('saveBtn').textContent='Save requirement';updateLocationField()}
+$('recordForm').addEventListener('submit',e=>{e.preventDefault();const id=$('editId').value||String(Date.now());const r={id};['name','category','authority','ref','site','location','issue','expiry','lead','owner','renewal','lastRenewed','link','notes'].forEach(k=>r[k]=$(k).value.trim());const i=records.findIndex(x=>x.id===id);if(i>=0)records[i]=r;else records.push(r);save();render();resetForm();closeForm()});
+function editRecord(id){const r=records.find(x=>x.id===id);if(!r)return;$('editId').value=r.id;['name','category','authority','ref','site','location','issue','expiry','lead','owner','renewal','lastRenewed','link','notes'].forEach(k=>$(k).value=r[k]||'');updateLocationField();$('formTitle').textContent='Edit legal requirement';$('saveBtn').textContent='Update requirement';openForm()}
+function deleteRecord(id){if(!confirm('Delete this requirement?'))return;records=records.filter(r=>r.id!==id);save();render()}
+function exportCSV(){const cols=['name','category','authority','ref','site','location','issue','expiry','lead','owner','renewal','lastRenewed','link','notes'];const csv=[cols.concat(['calculatedStatus']).join(','),...records.map(r=>cols.map(k=>'"'+String(r[k]||'').replace(/"/g,'""')+'"').concat('"'+statusOf(r)+'"').join(','))].join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download='legal-compliance-register.csv';a.click();URL.revokeObjectURL(a.href)}
+function downloadBackup(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(records,null,2)],{type:'application/json'}));a.download='legal-compliance-backup.json';a.click();URL.revokeObjectURL(a.href)}
+function restoreBackup(e){const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const data=JSON.parse(rd.result);if(!Array.isArray(data))throw Error();if(confirm('Replace current browser records with this backup?')){records=data;save();render();resetForm()}}catch(err){alert('Backup file is invalid.')}e.target.value=''};rd.readAsText(f)}
+updateLocationField();
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeForm()});
+render();
+</script>
+</body>
+</html>
